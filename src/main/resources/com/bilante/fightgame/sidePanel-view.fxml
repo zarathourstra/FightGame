@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="mainContainer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="240.0" spacing="10.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bilante.fightgame.SidePanelController">
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+   <children>
+      <!-- ScrollPane for player fields -->
+      <ScrollPane fx:id="playerScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="400" vbarPolicy="AS_NEEDED">
+         <content>
+            <VBox fx:id="playerTemplatesContainer" spacing="10" />
+         </content>
+      </ScrollPane>
+
+      <HBox prefHeight="30.0" prefWidth="230.0" spacing="10.0" fx:id="removeAddPlayer">
+         <children>
+            <Button alignment="CENTER" mnemonicParsing="false" onAction="#onRemovePlayer" prefHeight="25.0" prefWidth="100.0" text="Remove Player">
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
+            </Button>
+            <Button alignment="CENTER" mnemonicParsing="false" onAction="#onAddPlayer" prefHeight="25.0" prefWidth="100.0" text="Add Player" textAlignment="CENTER">
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
+            </Button>
+         </children>
+      </HBox>
+      <Button fx:id="startButton" contentDisplay="TOP" mnemonicParsing="false" onAction="#onValidate" prefHeight="30.0" prefWidth="120.0" text="START GAME" textAlignment="CENTER" />
+   </children>
+</VBox>
