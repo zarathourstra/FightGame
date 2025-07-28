@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.effect.Glow?>
+<Pane fx:id="gameBox" prefWidth="500" prefHeight="500"
+      xmlns="http://javafx.com/javafx/8"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.bilante.fightgame.GameBoxController"
+      style="-fx-background-color: rgb(246,242,242); -fx-border-color: black; -fx-border-width: 2;">
+
+    <!-- center-->
+    <Circle fx:id="center" centerX="250" centerY="250" radius="5" fill="yellow">
+        <effect>
+            <Glow level="1.0"/>
+        </effect>
+    </Circle>
+    <Circle fx:id="startLine" centerX="250" centerY="250" radius="75" fill="transparent" stroke="black" strokeWidth="1" />
+
+</Pane>
+

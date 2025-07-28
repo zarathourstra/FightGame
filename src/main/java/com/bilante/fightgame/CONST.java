@@ -1,8 +1,22 @@
 package com.bilante.fightgame;
 
+import javafx.scene.paint.Color;
+
 public class CONST {
     public static final int MAX_PLAYERS = 5;
     public static final int SHARED_POINTS = 10;
+    public static final int PLAYER_RADIUS = 12;
+    public static final double[] centerXY = {250, 250};
+    public static final double startLineRadius = 75;
+    public static final double GAME_WIDTH = 500;
+    public static final double GAME_HEIGHT = 500;
+    public static final Color[] colors = {
+            Color.rgb(35, 199, 0),
+            Color.rgb(0, 199, 146),
+            Color.rgb(206, 16, 16),
+            Color.rgb(118, 10, 122),
+            Color.rgb(150, 50, 10)
+    };
 
     /** @param points : the share of points of the given 10 that goes to damage evaluation
      *                we use the rule that follows : there is a minimum of one point on damage
@@ -26,14 +40,14 @@ public class CONST {
      * @throws IllegalArgumentException if points < 0 or >= SHARED_POINTS
      */
     public static int speedFromPoints(int points) {
-        int baseSpeed = 100;
+        int baseSpeed = 80;
 
         if (points < 0) { throw new IllegalArgumentException("negative points passed"); }
         if (points >= SHARED_POINTS) { // SHARED_POINTS must be defined somewhere (like 10)
             throw new IllegalArgumentException("Exceeding amount of points");
         }
 
-        if (points == 0) { return 80; }
+        if (points == 0) { return 70; }
         if (points <= 3) {
             baseSpeed += 20 * points;
         } else {
@@ -51,4 +65,18 @@ public class CONST {
         return (double) points;
     }
 
+    static class Position {
+        double x;
+        double y;
+
+        public Position(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public double getX() { return x; }
+        public double getY() { return y; }
+        public void setX(double x) { this.x = x; }
+        public void setY(double y) { this.y = y; }
+    }
 }

@@ -1,12 +1,11 @@
 package com.bilante.fightgame;
 
-import javafx.animation.Interpolator;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
+import javafx.animation.*;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -30,12 +29,49 @@ public class SidePanelController {
     @FXML
     private Button startButton;
 
-    private SidePanel sidePanel;
-    private List<PlayerFieldSet> playerFieldSets = new ArrayList<>();
-    private List<PlayerDisplaySet> playerDisplaySets = new ArrayList<>();
+    AnimationTimer displayLoop;
 
-    public void initialize() {
-        sidePanel = new SidePanel();
+    private GameData gameData;
+    private List<PlayerFieldSet> playerFieldSets = new ArrayList<>();
+
+    public void setModel(GameData gameData) {
+        this.gameData = gameData;
+
+        gameData.dataReady.addListener((observable, oldValue, newValue) -> {
+            if (!newValue && oldValue) {
+                if (displayLoop != null) {
+                    displayLoop.stop();
+                    displayLoop = null;
+                }
+
+                removeAddPlayer.setDisable(false);
+                removeAddPlayer.setVisible(true);
+                startButton.setDisable(false);
+                startButton.setVisible(true);
+
+                playerTemplatesContainer.getChildren().clear();
+                gameData.sidePanel.playerDisplaySets.clear();
+                playerFieldSets.clear();
+
+                List<SidePanel.PlayerInput> inputs = gameData.sidePanel.playerInputs;
+                for (int i = 0; i < inputs.size(); i++) {
+                    SidePanel.PlayerInput input = inputs.get(i);
+                    PlayerFieldSet fieldSet = new PlayerFieldSet(i + 1);
+                    fieldSet.nameField.setText(input.name);
+                    fieldSet.damageSpinner.getValueFactory().setValue(input.damagePoints);
+                    fieldSet.speedSpinner.getValueFactory().setValue(input.damagePoints);
+                    fieldSet.healthSpinner.getValueFactory().setValue(input.healthPoints);
+
+                    playerFieldSets.add(fieldSet);
+                    playerTemplatesContainer.getChildren().add(fieldSet.container);
+                }
+            }
+        });
+
+    }
+
+
+    public void quickStart() {
         addPlayerField();
         addPlayerField();
     }
@@ -52,7 +88,7 @@ public class SidePanelController {
             PlayerFieldSet lastFieldSet = playerFieldSets.get(lastIndex);
             playerTemplatesContainer.getChildren().remove(lastFieldSet.container);
             playerFieldSets.remove(lastIndex);
-            sidePanel.removeInputField(lastIndex);
+            gameData.sidePanel.removeInputField(lastIndex);
         } else {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Minimum players");
@@ -64,18 +100,18 @@ public class SidePanelController {
 
     @FXML
     private void onValidate() {
-        sidePanel.displays.clear();
-        playerDisplaySets.clear();
+        gameData.sidePanel.displays.clear();
+        gameData.sidePanel.playerDisplaySets.clear();
         playerTemplatesContainer.getChildren().clear();
 
         for (int i = 0; i < playerFieldSets.size(); i++) {
             PlayerFieldSet fieldSet = playerFieldSets.get(i);
-            SidePanel.PlayerInput playerInput = sidePanel.playerInputs.get(i);
+            SidePanel.PlayerInput playerInput = gameData.sidePanel.playerInputs.get(i);
             playerInput.setName(fieldSet.nameField.getText());
             playerInput.setDamagePoints(fieldSet.damageSpinner.getValue());
             playerInput.setSpeedPoints(fieldSet.speedSpinner.getValue());
             playerInput.setHealthPoints(fieldSet.healthSpinner.getValue());
-            sidePanel.displays.add(new SidePanel.playerInfoDisplay(playerInput));
+            gameData.sidePanel.displays.add(new SidePanel.PlayerInfoDisplay(playerInput));
         }
 
         removeAddPlayer.setDisable(true);
@@ -83,20 +119,40 @@ public class SidePanelController {
         startButton.setVisible(false);
         removeAddPlayer.setVisible(false);
         inflateLiveDisplay();
+
+        gameData.dataReady.set(true);
     }
 
     private void inflateLiveDisplay() {
-        for (SidePanel.playerInfoDisplay info : sidePanel.displays) {
-            PlayerDisplaySet display = new PlayerDisplaySet(
-                    info.name, info.speed, info.damage, info.health
-            );
-            playerDisplaySets.add(display);
+        playerTemplatesContainer.getChildren().clear();
+        gameData.sidePanel.playerDisplaySets.clear();
+
+        for (SidePanel.PlayerInfoDisplay info : gameData.sidePanel.displays) {
+            PlayerDisplaySet display = new PlayerDisplaySet(info.name, info.speed, info.damage, info.health, gameData.sidePanel.displays.indexOf(info));
+            gameData.sidePanel.playerDisplaySets.add(display);
             playerTemplatesContainer.getChildren().add(display.container);
         }
+        startLoopDisplay();
+
+    }
+
+    public void startLoopDisplay () {
+        displayLoop = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                for (int i = 0; i < gameData.sidePanel.playerDisplaySets.size(); i++) {
+                    PlayerDisplaySet display = gameData.sidePanel.playerDisplaySets.get(i);
+                    if(gameData.gameBox.players.get(i).healthPoints > 0) {
+                        display.updateHealthBar(gameData.gameBox.players.get(i).healthPoints, gameData.sidePanel.playerInputs.get(i).healthPoints);
+                    }
+                }
+            }
+        };
+        displayLoop.start();
     }
 
     private void addPlayerField() {
-        if (sidePanel.addInputField()) {
+        if (gameData.sidePanel.addInputField()) {
             int playerIndex = playerFieldSets.size();
             PlayerFieldSet fieldSet = new PlayerFieldSet(playerIndex + 1);
             playerFieldSets.add(fieldSet);
@@ -233,7 +289,7 @@ public class SidePanelController {
     }
 
     /** UI display for live game info **/
-    private static class PlayerDisplaySet {
+    static class PlayerDisplaySet {
         final VBox container;
         final Rectangle healthBarBackground;
         final Rectangle healthBarForeground;
@@ -244,19 +300,20 @@ public class SidePanelController {
         private final double MAX_BAR_WIDTH = 200;
         private final double BAR_HEIGHT = 20;
 
-        public PlayerDisplaySet(String name, int speed, double damage, double health) {
+        public PlayerDisplaySet(String name, int speed, double damage, double health, int index) {
             healthBarBackground = new Rectangle(MAX_BAR_WIDTH, BAR_HEIGHT);
             healthBarBackground.setFill(Color.LIGHTGRAY);
             healthBarBackground.setArcWidth(10);
             healthBarBackground.setArcHeight(10);
 
             healthBarForeground = new Rectangle(MAX_BAR_WIDTH, BAR_HEIGHT);
-            healthBarForeground.setFill(Color.LIMEGREEN);
+            healthBarForeground.setFill(CONST.colors[index]);
             healthBarForeground.setArcWidth(10);
             healthBarForeground.setArcHeight(10);
             updateHealthBar(health, health);
 
             StackPane healthBarStack = new StackPane(healthBarBackground, healthBarForeground);
+            healthBarStack.setAlignment(Pos.CENTER_LEFT);
             healthBarStack.setMaxWidth(MAX_BAR_WIDTH);
 
             nameLabel = new Label(name);
@@ -269,11 +326,18 @@ public class SidePanelController {
             container = new VBox(5, healthBarStack, infoBox);
             container.setPadding(new Insets(10));
             container.setStyle("-fx-border-color: black; -fx-border-radius: 5; -fx-background-color: #f4f4f4;");
+
         }
 
         public void updateHealthBar(double currentHealth, double maxHealth) {
             double ratio = Math.max(0, Math.min(1.0, currentHealth / maxHealth));
-            double targetWidth = Math.max(1, ratio * MAX_BAR_WIDTH);
+            double targetWidth;
+
+            if (currentHealth <= 0) { // avoid border effect
+                targetWidth = 1;
+            } else {
+                targetWidth = ratio * MAX_BAR_WIDTH;
+            }
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.millis(300),
                             new KeyValue(healthBarForeground.widthProperty(), targetWidth, Interpolator.EASE_BOTH)
@@ -281,5 +345,6 @@ public class SidePanelController {
             );
             timeline.play();
         }
+
     }
 }

@@ -1,15 +1,23 @@
 package com.bilante.fightgame;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class SidePanel {
 
     int nbPlayers = 0;
-    List<PlayerInput> playerInputs = new ArrayList<PlayerInput>();
-    List<playerInfoDisplay> displays = new ArrayList<playerInfoDisplay>();
+    List<PlayerInput> playerInputs;
+    List<PlayerInfoDisplay> displays;
+    List<SidePanelController.PlayerDisplaySet> playerDisplaySets;
 
-    public SidePanel() {}
+    public SidePanel() {
+        playerInputs = new ArrayList<>();
+        displays = new ArrayList<>();
+        playerDisplaySets = new ArrayList<>();
+    }
 
     public boolean addInputField() {
         if (nbPlayers == CONST.MAX_PLAYERS) return false;
@@ -52,13 +60,13 @@ public class SidePanel {
     }
 
 
-    static class playerInfoDisplay {
+    static class PlayerInfoDisplay {
         final String name;
         final double damage;
         final int speed;
         double health;
 
-        public playerInfoDisplay ( PlayerInput playerInput ) {
+        public PlayerInfoDisplay(PlayerInput playerInput ) {
 
             this.damage = CONST.damagesFromPoints(playerInput.damagePoints);
             this.speed = CONST.speedFromPoints(playerInput.speedPoints);
@@ -66,9 +74,6 @@ public class SidePanel {
             this.name = playerInput.name;
         }
 
-        public void setHealth(double health) {
-            this.health = health;
-        }
     }
 
 }

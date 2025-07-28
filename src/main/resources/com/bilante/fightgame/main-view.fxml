@@ -17,14 +17,12 @@
 
     <!-- Left side: SidePanel -->
     <VBox fx:id="sidePanelBox" prefWidth="250" spacing="10">
-        <fx:include source="sidePanel-view.fxml"/>
+        <fx:include source="sidePanel-view.fxml" fx:id="sidePanel"/>
     </VBox>
 
     <!-- Right side: Main content area -->
     <VBox fx:id="mainContentBox" alignment="CENTER" spacing="20" HBox.hgrow="ALWAYS" prefWidth="500" prefHeight="500">
-        <Label fx:id="welcomeText" text="Welcome to the Game!" />
-        <Button text="Hello!" onAction="#onHelloButtonClick"/>
-        <!-- You can add more UI elements here for the main area -->
+        <fx:include source="gameBox-view.fxml" fx:id="gameBox"/>
     </VBox>
 
 </HBox>
